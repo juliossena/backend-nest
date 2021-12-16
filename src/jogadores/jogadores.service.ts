@@ -39,11 +39,11 @@ export class JogadoresService {
     return jogadorEncontrado;
   }
 
-  async deletarJogador(id: string): Promise<void> {
-    const jogador = await this.jogadorModel.find({ id }).exec();
+  async deletarJogador(id: string): Promise<any> {
+    const jogador = await this.jogadorModel.findOne({ id }).exec();
     if (!jogador) {
       throw new NotFoundException('Jogador não encontrado');
     }
-    return this.jogadorModel.remove({ id }).exec();
+    return this.jogadorModel.deleteOne({ id }).exec();
   }
 }
