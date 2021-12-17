@@ -4,6 +4,6 @@ import { PartidasService } from './partidas.service';
 
 @Module({
   controllers: [PartidasController],
-  providers: [PartidasService]
+  providers: [PartidasService],
 })
 export class PartidasModule {}
