@@ -20,20 +20,20 @@ export class JogadoresService {
   }
 
   async editarJogador(
-    id: string,
+    _id: string,
     criarJogadorDto: CriarJogadorDTO,
   ): Promise<Jogador> {
-    await this.consultarJogador(id);
+    await this.consultarJogador(_id);
 
-    return this.jogadorModel.findOneAndUpdate({ id }, criarJogadorDto).exec();
+    return this.jogadorModel.findOneAndUpdate({ _id }, criarJogadorDto).exec();
   }
 
   async consultarJogadores(): Promise<Jogador[]> {
     return this.jogadorModel.find().exec();
   }
 
-  async consultarJogador(id: string): Promise<Jogador> {
-    const jogadorEncontrado = await this.jogadorModel.findOne({ id }).exec();
+  async consultarJogador(_id: string): Promise<Jogador> {
+    const jogadorEncontrado = await this.jogadorModel.findOne({ _id }).exec();
     if (!jogadorEncontrado) {
       throw new NotFoundException('Jogador não encontrado');
     }
@@ -50,8 +50,8 @@ export class JogadoresService {
     return jogadorEncontrado;
   }
 
-  async deletarJogador(id: string): Promise<any> {
-    await this.consultarJogador(id);
-    return this.jogadorModel.deleteOne({ id }).exec();
+  async deletarJogador(_id: string): Promise<any> {
+    await this.consultarJogador(_id);
+    return this.jogadorModel.deleteOne({ _id }).exec();
   }
 }

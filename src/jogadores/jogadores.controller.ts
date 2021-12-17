@@ -13,7 +13,7 @@ import {
 import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { Jogador } from './interfaces/jogador.interface';
 import { JogadoresService } from './jogadores.service';
-import { JogadorValidacaoParametrosPipe } from './pipes/jogador-validacao-parametros-pipe';
+import { ValidacaoParametrosPipe } from '../common/pipes/validacao-parametros-pipe';
 
 @Controller('jogadores')
 export class JogadoresController {
@@ -29,7 +29,7 @@ export class JogadoresController {
 
   @Get()
   async consultarJogadores(
-    @Query('email', JogadorValidacaoParametrosPipe) email: string,
+    @Query('email', ValidacaoParametrosPipe) email: string,
   ): Promise<Jogador[]> {
     if (email) {
       return this.jogadoresService.consultarJogadorEmail(email);
