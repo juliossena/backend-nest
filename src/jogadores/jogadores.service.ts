@@ -23,11 +23,22 @@ export class JogadoresService {
     id: string,
     criarJogadorDto: CriarJogadorDTO,
   ): Promise<Jogador> {
+    await this.consultarJogador(id);
+
     return this.jogadorModel.findOneAndUpdate({ id }, criarJogadorDto).exec();
   }
 
   async consultarJogadores(): Promise<Jogador[]> {
     return this.jogadorModel.find().exec();
+  }
+
+  async consultarJogador(id: string): Promise<Jogador> {
+    const jogadorEncontrado = await this.jogadorModel.findOne({ id }).exec();
+    if (!jogadorEncontrado) {
+      throw new NotFoundException('Jogador não encontrado');
+    }
+
+    return jogadorEncontrado;
   }
 
   async consultarJogadorEmail(email: string): Promise<Jogador[]> {
@@ -40,10 +51,7 @@ export class JogadoresService {
   }
 
   async deletarJogador(id: string): Promise<any> {
-    const jogador = await this.jogadorModel.findOne({ id }).exec();
-    if (!jogador) {
-      throw new NotFoundException('Jogador não encontrado');
-    }
+    await this.consultarJogador(id);
     return this.jogadorModel.deleteOne({ id }).exec();
   }
 }

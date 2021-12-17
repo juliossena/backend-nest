@@ -37,6 +37,11 @@ export class JogadoresController {
     return this.jogadoresService.consultarJogadores();
   }
 
+  @Get(':id')
+  async consultarJogador(@Param('id') id: string): Promise<Jogador> {
+    return this.jogadoresService.consultarJogador(id);
+  }
+
   @Put(':id')
   async editarJogador(
     @Body() criarJogadorDto: CriarJogadorDTO,
