@@ -8,12 +8,14 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CategoriasService } from './categorias.service';
 import { AtualizarCategoriaDto } from './dtos/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dtos/criar-categoria.dto';
 import { Categoria } from './interfaces/categoria.interface';
 
 @Controller('categorias')
+@ApiTags('categorias')
 export class CategoriasController {
   constructor(private readonly caregoriasService: CategoriasService) {}
 

@@ -9,11 +9,13 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { DesafiosService } from './desafios.service';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
 import { Desafio } from './interfaces/desafio.interface';
 
 @Controller('desafios')
+@ApiTags('desafios')
 export class DesafiosController {
   constructor(private readonly desafiosService: DesafiosService) {}
 

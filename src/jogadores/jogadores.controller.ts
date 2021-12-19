@@ -14,12 +14,15 @@ import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { Jogador } from './interfaces/jogador.interface';
 import { JogadoresService } from './jogadores.service';
 import { ValidacaoParametrosPipe } from '../common/pipes/validacao-parametros-pipe';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @Controller('jogadores')
+@ApiTags('jogadores')
 export class JogadoresController {
   constructor(private readonly jogadoresService: JogadoresService) {}
 
   @Post()
+  @ApiBody({ type: CriarJogadorDTO })
   @UsePipes(ValidationPipe)
   async criarJogador(
     @Body() criarJogadorDto: CriarJogadorDTO,
@@ -29,7 +32,7 @@ export class JogadoresController {
 
   @Get()
   async consultarJogadores(
-    @Query('email', ValidacaoParametrosPipe) email: string,
+    @Query('email', ValidacaoParametrosPipe) email?: string,
   ): Promise<Jogador[]> {
     if (email) {
       return this.jogadoresService.consultarJogadorEmail(email);
