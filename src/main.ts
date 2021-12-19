@@ -9,8 +9,8 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const options = new DocumentBuilder()
-    .setTitle('Conduit Blob API')
-    .setDescription('Conduit blog api')
+    .setTitle('Desafios API')
+    .setDescription('Desafios API')
     .setVersion('1.0.0')
     .build();
 

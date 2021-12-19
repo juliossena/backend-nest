@@ -9,7 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { DesafiosService } from './desafios.service';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
 import { Desafio } from './interfaces/desafio.interface';
@@ -30,6 +30,7 @@ export class DesafiosController {
   }
 
   @Post()
+  @ApiBody({ type: CriarDesafioDto })
   @UsePipes(ValidationPipe)
   async inserirDesafio(
     @Body() criarDesafioDto: CriarDesafioDto,
@@ -38,6 +39,7 @@ export class DesafiosController {
   }
 
   @Put(':id')
+  @ApiBody({ type: CriarDesafioDto })
   @UsePipes(ValidationPipe)
   async atualizarDesafio(
     @Param('id') id: string,

@@ -8,7 +8,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CategoriasService } from './categorias.service';
 import { AtualizarCategoriaDto } from './dtos/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dtos/criar-categoria.dto';
@@ -20,6 +20,7 @@ export class CategoriasController {
   constructor(private readonly caregoriasService: CategoriasService) {}
 
   @Post()
+  @ApiBody({ type: CriarCategoriaDto })
   @UsePipes(ValidationPipe)
   async criarCategoria(
     @Body() criarCategoriaDto: CriarCategoriaDto,
@@ -38,6 +39,7 @@ export class CategoriasController {
   }
 
   @Put(':id')
+  @ApiBody({ type: AtualizarCategoriaDto })
   @UsePipes(ValidationPipe)
   async atualizarCategoria(
     @Param('id') id: string,

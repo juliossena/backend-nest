@@ -22,8 +22,8 @@ export class JogadoresController {
   constructor(private readonly jogadoresService: JogadoresService) {}
 
   @Post()
-  @ApiBody({ type: CriarJogadorDTO })
   @UsePipes(ValidationPipe)
+  @ApiBody({ type: CriarJogadorDTO })
   async criarJogador(
     @Body() criarJogadorDto: CriarJogadorDTO,
   ): Promise<Jogador> {
@@ -46,6 +46,8 @@ export class JogadoresController {
   }
 
   @Put(':id')
+  @UsePipes(ValidationPipe)
+  @ApiBody({ type: CriarJogadorDTO })
   async editarJogador(
     @Body() criarJogadorDto: CriarJogadorDTO,
     @Param('id') id: string,
