@@ -6,11 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ValidacaoParametrosPipe } from 'src/common/pipes/validacao-parametros-pipe';
 import { DesafiosService } from './desafios.service';
+import { AtualizarDesafioDto } from './dtos/atualizar-desafio.dto';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
 import { Desafio } from './interfaces/desafio.interface';
 
@@ -20,7 +23,12 @@ export class DesafiosController {
   constructor(private readonly desafiosService: DesafiosService) {}
 
   @Get()
-  async buscarDesafios(): Promise<Desafio[]> {
+  async buscarDesafios(
+    @Query('idJogador', ValidacaoParametrosPipe) idJogador?: string,
+  ): Promise<Desafio[]> {
+    if (idJogador) {
+      return this.desafiosService.buscarDesafiosIdJogador(idJogador);
+    }
     return this.desafiosService.buscarDesafios();
   }
 
@@ -39,17 +47,17 @@ export class DesafiosController {
   }
 
   @Put(':id')
-  @ApiBody({ type: CriarDesafioDto })
+  @ApiBody({ type: AtualizarDesafioDto })
   @UsePipes(ValidationPipe)
   async atualizarDesafio(
     @Param('id') id: string,
-    @Body() criarDesafioDto: CriarDesafioDto,
+    @Body() atualizarDesafioDto: AtualizarDesafioDto,
   ): Promise<Desafio> {
-    return this.desafiosService.atualizarDesafio(id, criarDesafioDto);
+    return this.desafiosService.atualizarDesafio(id, atualizarDesafioDto);
   }
 
   @Delete(':id')
-  async deletarDesafio(@Param('id') id: string): Promise<void> {
-    this.desafiosService.deletarDesafio(id);
+  async deletarDesafio(@Param('id') id: string): Promise<Desafio> {
+    return this.desafiosService.deletarDesafio(id);
   }
 }

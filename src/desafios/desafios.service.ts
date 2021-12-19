@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { CategoriasService } from 'src/categorias/categorias.service';
 import { JogadorDTO } from 'src/jogadores/dtos/jogador.dto';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
+import { AtualizarDesafioDto } from './dtos/atualizar-desafio.dto';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
 import { DesafioStatus } from './enums/desafio-status.enum';
 import { Desafio } from './interfaces/desafio.interface';
@@ -26,8 +27,12 @@ export class DesafiosService {
     return this.desafioModal.find().exec();
   }
 
+  async buscarDesafiosIdJogador(idJogador: string): Promise<Desafio[]> {
+    return this.desafioModal.find({ jogadores: idJogador }).exec();
+  }
+
   async buscarDesafioId(_id: string): Promise<Desafio> {
-    const desafio = this.desafioModal.findOne({ _id }).exec();
+    const desafio = await this.desafioModal.findOne({ _id }).exec();
 
     if (!desafio) {
       throw new NotFoundException('Desafio inexistente');
@@ -88,18 +93,40 @@ export class DesafiosService {
     return desafio.save();
   }
 
-  async deletarDesafio(_id: string): Promise<any> {
-    await this.buscarDesafioId(_id);
+  async deletarDesafio(_id: string): Promise<Desafio> {
+    const desafio = await this.buscarDesafioId(_id);
 
-    return this.desafioModal.deleteOne({ _id }).exec();
+    return this.desafioModal
+      .findOneAndUpdate(
+        { _id },
+        {
+          ...desafio.toObject(),
+          status: DesafioStatus.CANCELADO,
+        },
+      )
+      .exec();
+  }
+
+  private verificarStatusValido(status: string): void {
+    if (
+      status !== DesafioStatus.ACEITO &&
+      status !== DesafioStatus.NEGADO &&
+      status !== DesafioStatus.CANCELADO
+    ) {
+      throw new BadRequestException('Status inválido');
+    }
   }
 
   async atualizarDesafio(
     _id: string,
-    criarDesafioDto: CriarDesafioDto,
+    atualizarDesafioDto: AtualizarDesafioDto,
   ): Promise<Desafio> {
-    await this.buscarDesafioId(_id);
+    const desafio = await this.buscarDesafioId(_id);
 
-    return this.desafioModal.findOneAndUpdate({ _id }, criarDesafioDto).exec();
+    this.verificarStatusValido(atualizarDesafioDto.status);
+
+    return this.desafioModal
+      .findOneAndUpdate({ _id }, { ...desafio, atualizarDesafioDto })
+      .exec();
   }
 }
