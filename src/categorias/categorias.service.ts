@@ -37,6 +37,18 @@ export class CategoriasService {
     return this.categoriaModel.find().populate('jogadores').exec();
   }
 
+  async buscarCategoriasPorJogador(idJogador: string): Promise<Categoria[]> {
+    const categorias = await this.categoriaModel
+      .find({ jogadores: idJogador })
+      .populate('jogadores')
+      .exec();
+
+    if (!categorias || categorias.length === 0) {
+      throw new BadRequestException('Jogador não possui categoria');
+    }
+    return categorias;
+  }
+
   async buscarCategoriaId(_id: string): Promise<Categoria> {
     const categoria = await this.categoriaModel
       .findOne({ _id })

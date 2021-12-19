@@ -50,6 +50,17 @@ export class JogadoresService {
     return jogadorEncontrado;
   }
 
+  async consultarJogadoresId(ids: string[]): Promise<Jogador[]> {
+    const jogadoresEncontrados = await this.jogadorModel
+      .find({ _id: ids })
+      .exec();
+    if (!jogadoresEncontrados || jogadoresEncontrados.length === 0) {
+      throw new NotFoundException('Jogador não encontrado');
+    }
+
+    return jogadoresEncontrados;
+  }
+
   async deletarJogador(_id: string): Promise<any> {
     await this.consultarJogador(_id);
     return this.jogadorModel.deleteOne({ _id }).exec();

@@ -10,11 +10,16 @@ export const DesafioSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Jogador',
     },
-    categoria: String,
-    jogadores: {
+    categoria: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Jogador',
+      ref: 'Categoria',
     },
+    jogadores: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Jogador',
+      },
+    ],
     partida: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Partida',
