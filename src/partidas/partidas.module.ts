@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { PartidaSchema } from './interfaces/partida.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Partida } from './entities/partida.entity';
 import { PartidasController } from './partidas.controller';
 import { PartidasService } from './partidas.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: 'Partida', schema: PartidaSchema }]),
-  ],
+  imports: [TypeOrmModule.forFeature([Partida])],
   controllers: [PartidasController],
   providers: [PartidasService],
   exports: [PartidasService],

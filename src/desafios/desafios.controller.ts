@@ -16,7 +16,7 @@ import { DesafiosService } from './desafios.service';
 import { AtribuirDesafioDto } from './dtos/atribuir-desafio-partida.dto';
 import { AtualizarDesafioDto } from './dtos/atualizar-desafio.dto';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
-import { Desafio } from './interfaces/desafio.interface';
+import { Desafio } from './entities/desafio.entity';
 import { DesafioStatusValidationPipe } from './pipes/desafio-status-validation-pipe';
 
 @Controller('desafios')
@@ -26,7 +26,7 @@ export class DesafiosController {
 
   @Get()
   async buscarDesafios(
-    @Query('idJogador', ValidacaoParametrosPipe) idJogador?: string,
+    @Query('idJogador', ValidacaoParametrosPipe) idJogador?: number,
   ): Promise<Desafio[]> {
     if (idJogador) {
       return this.desafiosService.buscarDesafiosIdJogador(idJogador);
@@ -35,7 +35,7 @@ export class DesafiosController {
   }
 
   @Get(':id')
-  async buscarDesafioId(@Param('id') id: string): Promise<Desafio> {
+  async buscarDesafioId(@Param('id') id: number): Promise<Desafio> {
     return this.desafiosService.buscarDesafioId(id);
   }
 
@@ -52,14 +52,14 @@ export class DesafiosController {
   @ApiBody({ type: AtualizarDesafioDto })
   @UsePipes(ValidationPipe)
   async atualizarDesafio(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body(DesafioStatusValidationPipe) atualizarDesafioDto: AtualizarDesafioDto,
   ): Promise<Desafio> {
     return this.desafiosService.atualizarDesafio(id, atualizarDesafioDto);
   }
 
   @Delete(':id')
-  async deletarDesafio(@Param('id') id: string): Promise<Desafio> {
+  async deletarDesafio(@Param('id') id: number): Promise<Desafio> {
     return this.desafiosService.deletarDesafio(id);
   }
 
@@ -67,7 +67,7 @@ export class DesafiosController {
   @ApiBody({ type: AtribuirDesafioDto })
   @UsePipes(ValidationPipe)
   async atribuirDesafioPartida(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() atribuirDesafioDto: AtribuirDesafioDto,
   ): Promise<void> {
     await this.desafiosService.atribuirDesafioPartida(id, atribuirDesafioDto);

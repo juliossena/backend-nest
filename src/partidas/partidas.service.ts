@@ -1,19 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CriarPartidaDto } from './dtos/criar-partida.dto';
-import { Partida } from './interfaces/partida.interface';
+import { Partida } from './entities/partida.entity';
 
 @Injectable()
 export class PartidasService {
-  constructor(@InjectModel('Partida') readonly partidaModel: Model<Partida>) {}
+  constructor(
+    @InjectRepository(Partida) private partidaRepository: Repository<Partida>,
+  ) {}
 
   async visualizarTodasAsPartidas(): Promise<Partida[]> {
-    return this.partidaModel.find().exec();
+    return this.partidaRepository.find();
   }
 
-  async consultarPartidaId(_id): Promise<Partida> {
-    const partida = this.partidaModel.findOne({ _id });
+  async consultarPartidaId(id: number): Promise<Partida> {
+    const partida = await this.partidaRepository.findOne({ id });
 
     if (!partida) {
       throw new NotFoundException('Partida não encontrada');
@@ -23,13 +25,11 @@ export class PartidasService {
   }
 
   async criarPartida(criarPartidaDto: CriarPartidaDto): Promise<Partida> {
-    const partida = new this.partidaModel(criarPartidaDto);
-
-    return partida.save();
+    return this.partidaRepository.save(criarPartidaDto);
   }
 
-  async excluirPartida(_id: string): Promise<void> {
-    await this.consultarPartidaId(_id);
-    await this.partidaModel.deleteOne({ _id }).exec();
+  async excluirPartida(id: number): Promise<void> {
+    await this.consultarPartidaId(id);
+    await this.partidaRepository.delete({ id });
   }
 }

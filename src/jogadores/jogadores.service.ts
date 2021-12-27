@@ -1,13 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Categoria } from 'src/categorias/entities/categoria.entity';
+import { Repository } from 'typeorm';
 import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
-import { Jogador } from './interfaces/jogador.interface';
+import { Jogador } from './entities/jogador.entity';
 
 @Injectable()
 export class JogadoresService {
   constructor(
-    @InjectModel('Jogador') private readonly jogadorModel: Model<Jogador>,
+    @InjectRepository(Jogador)
+    private jogadorRepository: Repository<Jogador>,
   ) {}
 
   private readonly logger = new Logger(JogadoresService.name);
@@ -15,25 +22,52 @@ export class JogadoresService {
   async criarJogador(criarJogadorDto: CriarJogadorDTO): Promise<Jogador> {
     this.logger.log(`criaJogadorDto: ${criarJogadorDto}`);
 
-    const jogadorCriado = new this.jogadorModel(criarJogadorDto);
-    return jogadorCriado.save();
+    return this.jogadorRepository.save(criarJogadorDto);
   }
 
   async editarJogador(
-    _id: string,
+    id: number,
     criarJogadorDto: CriarJogadorDTO,
   ): Promise<Jogador> {
-    await this.consultarJogador(_id);
+    const jogador = await this.consultarJogador(id);
 
-    return this.jogadorModel.findOneAndUpdate({ _id }, criarJogadorDto).exec();
+    this.jogadorRepository.update(jogador, criarJogadorDto);
+
+    return { ...jogador, ...criarJogadorDto };
+  }
+
+  async inserirCategoriaJogador(
+    idJogador: number,
+    categoria: Categoria,
+  ): Promise<void> {
+    const jogador = await this.consultarJogador(idJogador);
+
+    await this.jogadorRepository.update(jogador, {
+      ...jogador,
+      categoria: categoria,
+    });
+  }
+
+  async buscarCategoriaPorJogador(idJogador: number): Promise<Categoria> {
+    const jogador = await this.jogadorRepository.findOne({
+      where: {
+        id: idJogador,
+      },
+      relations: ['categoria'],
+    });
+
+    if (!jogador.categoria) {
+      throw new BadRequestException('Jogador não possui categoria');
+    }
+    return jogador.categoria;
   }
 
   async consultarJogadores(): Promise<Jogador[]> {
-    return this.jogadorModel.find().exec();
+    return this.jogadorRepository.find();
   }
 
-  async consultarJogador(_id: string): Promise<Jogador> {
-    const jogadorEncontrado = await this.jogadorModel.findOne({ _id }).exec();
+  async consultarJogador(id: number): Promise<Jogador> {
+    const jogadorEncontrado = await this.jogadorRepository.findOne({ id });
     if (!jogadorEncontrado) {
       throw new NotFoundException('Jogador não encontrado');
     }
@@ -42,7 +76,7 @@ export class JogadoresService {
   }
 
   async consultarJogadorEmail(email: string): Promise<Jogador[]> {
-    const jogadorEncontrado = await this.jogadorModel.find({ email }).exec();
+    const jogadorEncontrado = await this.jogadorRepository.find({ email });
     if (!jogadorEncontrado || jogadorEncontrado.length === 0) {
       throw new NotFoundException('Jogador não encontrado');
     }
@@ -50,10 +84,8 @@ export class JogadoresService {
     return jogadorEncontrado;
   }
 
-  async consultarJogadoresId(ids: string[]): Promise<Jogador[]> {
-    const jogadoresEncontrados = await this.jogadorModel
-      .find({ _id: ids })
-      .exec();
+  async consultarJogadoresId(ids: number[]): Promise<Jogador[]> {
+    const jogadoresEncontrados = await this.jogadorRepository.findByIds(ids);
     if (!jogadoresEncontrados || jogadoresEncontrados.length === 0) {
       throw new NotFoundException('Jogador não encontrado');
     }
@@ -61,8 +93,8 @@ export class JogadoresService {
     return jogadoresEncontrados;
   }
 
-  async deletarJogador(_id: string): Promise<any> {
-    await this.consultarJogador(_id);
-    return this.jogadorModel.deleteOne({ _id }).exec();
+  async deletarJogador(id: number): Promise<any> {
+    const jogador = await this.consultarJogador(id);
+    return this.jogadorRepository.delete(jogador);
   }
 }

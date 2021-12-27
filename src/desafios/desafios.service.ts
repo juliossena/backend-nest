@@ -4,35 +4,35 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriasService } from 'src/categorias/categorias.service';
-import { JogadorDTO } from 'src/jogadores/dtos/jogador.dto';
+import { Jogador } from 'src/jogadores/entities/jogador.entity';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
 import { CriarPartidaDto } from 'src/partidas/dtos/criar-partida.dto';
 import { PartidasService } from 'src/partidas/partidas.service';
+import { Repository } from 'typeorm';
 import { AtribuirDesafioDto } from './dtos/atribuir-desafio-partida.dto';
 import { AtualizarDesafioDto } from './dtos/atualizar-desafio.dto';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
+import { Desafio } from './entities/desafio.entity';
 import { DesafioStatus } from './enums/desafio-status.enum';
-import { Desafio } from './interfaces/desafio.interface';
 
 const QUANTIDADE_DE_JOGADORES_DESAFIO = 2;
 
 @Injectable()
 export class DesafiosService {
   constructor(
-    @InjectModel('Desafio') private readonly desafioModal: Model<Desafio>,
+    @InjectRepository(Desafio) private desafioRepository: Repository<Desafio>,
     private readonly jogadoresService: JogadoresService,
     private readonly categoriasService: CategoriasService,
     private readonly partidasService: PartidasService,
   ) {}
 
   private async verificarExisteJogadores(
-    jogadores: JogadorDTO[],
-  ): Promise<void> {
+    jogadores: Jogador[],
+  ): Promise<Jogador[]> {
     const jogadoresResultado = await this.jogadoresService.consultarJogadoresId(
-      jogadores.map((jogador) => jogador._id),
+      jogadores.map((jogador) => jogador.id),
     );
 
     if (
@@ -43,9 +43,11 @@ export class DesafiosService {
         'Não foi localizado todos os jogadores do desafio',
       );
     }
+
+    return jogadoresResultado;
   }
 
-  private verificarJogadorNaLista(jogadores: string[], solicitante: string) {
+  private verificarJogadorNaLista(jogadores: number[], solicitante: number) {
     const jogadorNaLista = jogadores.find((jogador) => jogador === solicitante);
 
     if (!jogadorNaLista) {
@@ -54,20 +56,19 @@ export class DesafiosService {
   }
 
   async buscarDesafios(): Promise<Desafio[]> {
-    return this.desafioModal.find().exec();
+    return this.desafioRepository.find();
   }
 
-  async buscarDesafiosIdJogador(idJogador: string): Promise<Desafio[]> {
-    return this.desafioModal.find({ jogadores: idJogador }).exec();
+  async buscarDesafiosIdJogador(idJogador: number): Promise<Desafio[]> {
+    const jogador = new Jogador(idJogador);
+    return this.desafioRepository.find({ jogadores: [jogador] });
   }
 
-  async buscarDesafioId(_id: string): Promise<Desafio> {
-    const desafio = await this.desafioModal
-      .findOne({ _id })
-      .populate('solicitante')
-      .populate('jogadores')
-      .populate('partida')
-      .exec();
+  async buscarDesafioId(id: number): Promise<Desafio> {
+    const desafio = await this.desafioRepository.findOne({
+      relations: ['solicitante', 'jogadores', 'partida'],
+      where: { id },
+    });
 
     if (!desafio) {
       throw new NotFoundException('Desafio inexistente');
@@ -80,60 +81,57 @@ export class DesafiosService {
     const { jogadores, solicitante } = criarDesafioDto;
 
     this.verificarJogadorNaLista(
-      jogadores.map((jogador) => jogador._id),
-      solicitante,
+      jogadores.map((jogador) => jogador.id),
+      solicitante.id,
     );
+
     await this.verificarExisteJogadores(jogadores);
-    const categorias = await this.categoriasService.buscarCategoriasPorJogador(
-      solicitante,
+    const categoria = await this.jogadoresService.buscarCategoriaPorJogador(
+      solicitante.id,
     );
 
-    if (categorias.length === 0) {
-      throw new BadRequestException('Usuário não possui categorias');
-    }
-
-    const desafio = new this.desafioModal({
+    return this.desafioRepository.save({
       ...criarDesafioDto,
+      categoria,
       status: DesafioStatus.PENDENTE,
       dataHoraSolicitacao: new Date(),
-      categoria: categorias[0]._id,
     });
-    return desafio.save();
   }
 
-  async deletarDesafio(_id: string): Promise<Desafio> {
-    const desafio = await this.buscarDesafioId(_id);
+  async deletarDesafio(id: number): Promise<Desafio> {
+    const desafio = await this.buscarDesafioId(id);
 
-    return this.desafioModal
-      .findOneAndUpdate(
-        { _id },
-        {
-          ...desafio.toObject(),
-          status: DesafioStatus.CANCELADO,
-        },
-      )
-      .exec();
+    const newDesafio = {
+      ...desafio,
+      status: DesafioStatus.CANCELADO,
+    };
+
+    await this.desafioRepository.update({ id }, newDesafio);
+
+    return newDesafio;
   }
 
   async atualizarDesafio(
-    _id: string,
+    id: number,
     atualizarDesafioDto: AtualizarDesafioDto,
   ): Promise<Desafio> {
-    const desafio = await this.buscarDesafioId(_id);
+    const desafio = await this.buscarDesafioId(id);
 
-    return this.desafioModal
-      .findOneAndUpdate({ _id }, { ...desafio.toObject(), atualizarDesafioDto })
-      .exec();
+    const newDesafio = { ...desafio, atualizarDesafioDto };
+
+    await this.desafioRepository.update({ id }, newDesafio);
+
+    return newDesafio;
   }
 
   async atribuirDesafioPartida(
-    _id: string,
+    id: number,
     atribuirDesafioDto: AtribuirDesafioDto,
   ): Promise<void> {
-    const desafio = await this.buscarDesafioId(_id);
+    const desafio = await this.buscarDesafioId(id);
     this.verificarJogadorNaLista(
       desafio.jogadores.map((jogador) => jogador.id),
-      atribuirDesafioDto.def._id,
+      atribuirDesafioDto.def.id,
     );
 
     const criarPartidaDto = new CriarPartidaDto(
@@ -144,18 +142,17 @@ export class DesafiosService {
 
     const partida = await this.partidasService.criarPartida(criarPartidaDto);
 
-    await this.desafioModal
-      .findOneAndUpdate(
-        { _id },
+    await this.desafioRepository
+      .update(
+        { id },
         {
-          ...desafio.toObject(),
+          ...desafio,
           status: DesafioStatus.REALIZADO,
           partida,
         },
       )
-      .exec()
       .catch(async () => {
-        await this.partidasService.excluirPartida(partida._id);
+        await this.partidasService.excluirPartida(partida.id);
         throw new InternalServerErrorException();
       });
   }

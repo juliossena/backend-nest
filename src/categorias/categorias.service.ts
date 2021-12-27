@@ -3,17 +3,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Jogador } from 'src/jogadores/entities/jogador.entity';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
+import { Repository } from 'typeorm';
 import { AtualizarCategoriaDto } from './dtos/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dtos/criar-categoria.dto';
-import { Categoria } from './interfaces/categoria.interface';
+import { Categoria } from './entities/categoria.entity';
 
 @Injectable()
 export class CategoriasService {
   constructor(
-    @InjectModel('Categoria') private readonly categoriaModel: Model<Categoria>,
+    @InjectRepository(Categoria)
+    private categoriaRepository: Repository<Categoria>,
     private readonly jogadoresService: JogadoresService,
   ) {}
 
@@ -22,38 +24,30 @@ export class CategoriasService {
   ): Promise<Categoria> {
     const { categoria } = criarCategoriaDto;
 
-    const categoriaEncontrada = await this.categoriaModel
-      .findOne({ categoria })
-      .exec();
+    const categoriaEncontrada = await this.categoriaRepository.findOne({
+      categoria,
+    });
 
     if (categoriaEncontrada) {
       throw new BadRequestException('Categoria encontrada');
     }
 
-    return new this.categoriaModel(criarCategoriaDto).save();
+    return this.categoriaRepository.save(criarCategoriaDto);
   }
 
   async buscarCategorias(): Promise<Categoria[]> {
-    return this.categoriaModel.find().populate('jogadores').exec();
+    return this.categoriaRepository.find({
+      relations: ['jogadores'],
+    });
   }
 
-  async buscarCategoriasPorJogador(idJogador: string): Promise<Categoria[]> {
-    const categorias = await this.categoriaModel
-      .find({ jogadores: idJogador })
-      .populate('jogadores')
-      .exec();
-
-    if (!categorias || categorias.length === 0) {
-      throw new BadRequestException('Jogador não possui categoria');
-    }
-    return categorias;
-  }
-
-  async buscarCategoriaId(_id: string): Promise<Categoria> {
-    const categoria = await this.categoriaModel
-      .findOne({ _id })
-      .populate('jogadores')
-      .exec();
+  async buscarCategoriaId(id: number): Promise<Categoria> {
+    const categoria = await this.categoriaRepository.findOne({
+      relations: ['jogadores'],
+      where: {
+        id,
+      },
+    });
     if (!categoria) {
       throw new NotFoundException('Categoria não encontrada');
     }
@@ -61,19 +55,21 @@ export class CategoriasService {
   }
 
   async atualizarCategoria(
-    _id: string,
+    id: number,
     atualizarCategoria: AtualizarCategoriaDto,
   ): Promise<Categoria> {
-    await this.buscarCategoriaId(_id);
+    const categoria = await this.buscarCategoriaId(id);
 
-    return this.categoriaModel
-      .findOneAndUpdate({ _id }, atualizarCategoria)
-      .exec();
+    await this.categoriaRepository.update(categoria, atualizarCategoria);
+
+    return {
+      ...categoria,
+    };
   }
 
   async atribuirCategoriaJogador(
-    idCategoria: string,
-    idJogador: string,
+    idCategoria: number,
+    idJogador: number,
   ): Promise<void> {
     const categoria = await this.buscarCategoriaId(idCategoria);
     const jogador = await this.jogadoresService.consultarJogador(idJogador);
@@ -85,8 +81,7 @@ export class CategoriasService {
     if (jogadorCadastrado) {
       throw new BadRequestException('Jogador já cadastrado na categoria');
     }
-    categoria.jogadores.push(jogador);
 
-    await this.categoriaModel.findOneAndUpdate({ _id: idCategoria }, categoria);
+    await this.jogadoresService.inserirCategoriaJogador(jogador.id, categoria);
   }
 }

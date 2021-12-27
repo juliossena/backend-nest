@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Partida } from './interfaces/partida.interface';
+import { Partida } from './entities/partida.entity';
 import { PartidasService } from './partidas.service';
 
 @Controller('partidas')

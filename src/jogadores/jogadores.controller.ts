@@ -11,10 +11,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
-import { Jogador } from './interfaces/jogador.interface';
 import { JogadoresService } from './jogadores.service';
 import { ValidacaoParametrosPipe } from '../common/pipes/validacao-parametros-pipe';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { Jogador } from './entities/jogador.entity';
 
 @Controller('jogadores')
 @ApiTags('jogadores')
@@ -41,7 +41,7 @@ export class JogadoresController {
   }
 
   @Get(':id')
-  async consultarJogador(@Param('id') id: string): Promise<Jogador> {
+  async consultarJogador(@Param('id') id: number): Promise<Jogador> {
     return this.jogadoresService.consultarJogador(id);
   }
 
@@ -50,13 +50,13 @@ export class JogadoresController {
   @ApiBody({ type: CriarJogadorDTO })
   async editarJogador(
     @Body() criarJogadorDto: CriarJogadorDTO,
-    @Param('id') id: string,
+    @Param('id') id: number,
   ): Promise<Jogador> {
     return this.jogadoresService.editarJogador(id, criarJogadorDto);
   }
 
   @Delete(':id')
-  async deletarJogador(@Param('id') id: string): Promise<void> {
+  async deletarJogador(@Param('id') id: number): Promise<void> {
     return this.jogadoresService.deletarJogador(id);
   }
 }

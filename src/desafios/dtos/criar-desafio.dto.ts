@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { JogadorDTO } from 'src/jogadores/dtos/jogador.dto';
+import { Jogador } from 'src/jogadores/entities/jogador.entity';
 
 export class CriarDesafioDto {
   @IsNotEmpty()
@@ -16,11 +17,11 @@ export class CriarDesafioDto {
 
   @IsNotEmpty()
   @ApiProperty({ type: String })
-  solicitante: string;
+  solicitante: Jogador;
 
   @IsArray()
   @ArrayMinSize(2)
   @ArrayMaxSize(2)
   @ApiProperty({ type: [JogadorDTO] })
-  jogadores: JogadorDTO[];
+  jogadores: Jogador[];
 }

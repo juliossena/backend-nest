@@ -12,7 +12,7 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CategoriasService } from './categorias.service';
 import { AtualizarCategoriaDto } from './dtos/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dtos/criar-categoria.dto';
-import { Categoria } from './interfaces/categoria.interface';
+import { Categoria } from './entities/categoria.entity';
 
 @Controller('categorias')
 @ApiTags('categorias')
@@ -34,7 +34,7 @@ export class CategoriasController {
   }
 
   @Get(':id')
-  async buscarCategoriaId(@Param('id') id: string): Promise<Categoria> {
+  async buscarCategoriaId(@Param('id') id: number): Promise<Categoria> {
     return this.caregoriasService.buscarCategoriaId(id);
   }
 
@@ -42,7 +42,7 @@ export class CategoriasController {
   @ApiBody({ type: AtualizarCategoriaDto })
   @UsePipes(ValidationPipe)
   async atualizarCategoria(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() atualizarCategoriaDto: AtualizarCategoriaDto,
   ): Promise<Categoria> {
     return this.caregoriasService.atualizarCategoria(id, atualizarCategoriaDto);
@@ -50,8 +50,8 @@ export class CategoriasController {
 
   @Post(':id/jogadores/:idJogador')
   async atribuirCategoriaJogador(
-    @Param('id') id: string,
-    @Param('idJogador') idJogador: string,
+    @Param('id') id: number,
+    @Param('idJogador') idJogador: number,
   ): Promise<void> {
     return this.caregoriasService.atribuirCategoriaJogador(id, idJogador);
   }

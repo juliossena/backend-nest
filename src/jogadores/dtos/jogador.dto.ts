@@ -4,5 +4,5 @@ import { IsNotEmpty } from 'class-validator';
 export class JogadorDTO {
   @IsNotEmpty()
   @ApiProperty({ type: String })
-  readonly _id: string;
+  readonly id: number;
 }

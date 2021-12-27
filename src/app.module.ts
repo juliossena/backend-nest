@@ -5,6 +5,7 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { DesafiosModule } from './desafios/desafios.module';
 import { PartidasModule } from './partidas/partidas.module';
 import { RankingsModule } from './rankings/rankings.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { RankingsModule } from './rankings/rankings.module';
     DesafiosModule,
     PartidasModule,
     RankingsModule,
+    DatabaseModule,
   ],
   controllers: [],
   providers: [],
